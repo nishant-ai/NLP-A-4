@@ -2,9 +2,9 @@
 
 #SBATCH --job-name=t5_scratch
 #SBATCH --account=ds_ga_1011_001-2025fa
-#SBATCH --partition=n1s8-v100-1
+#SBATCH --partition=c12m85-a100-1
 #SBATCH --gres=gpu:1
-#SBATCH --time=04:00:00
+#SBATCH --time=05:00:00
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=4
 #SBATCH --output=logs/slurm_%j.out
