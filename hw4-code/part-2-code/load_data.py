@@ -141,15 +141,20 @@ def test_collate_fn(batch):
 
 def get_dataloader(batch_size, split):
     data_folder = 'data'
+
+    # Use augmented data for training by default
+    if split == "train":
+        split = "train_augmented"
+
     dset = T5Dataset(data_folder, split)
-    shuffle = split == "train"
+    shuffle = "train" in split
     collate_fn = normal_collate_fn if split != "test" else test_collate_fn
 
     # OPTIMIZED: Add num_workers for faster data loading
     dataloader = DataLoader(
-        dset, 
-        batch_size=batch_size, 
-        shuffle=shuffle, 
+        dset,
+        batch_size=batch_size,
+        shuffle=shuffle,
         collate_fn=collate_fn,
         num_workers=2,  # Parallel data loading
         pin_memory=torch.cuda.is_available()  # Faster GPU transfer
@@ -160,7 +165,7 @@ def load_t5_data(batch_size, test_batch_size):
     train_loader = get_dataloader(batch_size, "train")
     dev_loader = get_dataloader(test_batch_size, "dev")
     test_loader = get_dataloader(test_batch_size, "test")
-    
+
     return train_loader, dev_loader, test_loader
 
 def load_lines(path):
