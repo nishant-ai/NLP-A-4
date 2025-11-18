@@ -30,24 +30,21 @@ class T5Dataset(Dataset):
         nl_file = os.path.join(data_folder, f'{split}.nl')
         nl_queries = load_lines(nl_file)
 
-        # Load schema
-        schema_path = os.path.join(data_folder, 'flight_database.schema')
-        schema_text = load_schema(schema_path)
-
-        # 2. OPTIMIZED: Better prompt format for T5
+        # 2. T5 task prefix format: Simple "translate to SQL:" prefix
+        # No schema context needed - model learns from training data
         prompts = []
         for query in nl_queries:
-            # Use question: format which T5 responds well to
-            prompt = f"question: {query} context: {schema_text}"
+            # Clean T5 task format: "task_prefix: input_text"
+            prompt = f"translate to SQL: {query}"
             prompts.append(prompt)
 
         # 3. Tokenize inputs with proper max_length
         self.encoder_inputs = []
         for p in prompts:
             tokens = tokenizer.encode(
-                p, 
-                truncation=True, 
-                max_length=512,  # Standard T5 max length
+                p,
+                truncation=True,
+                max_length=128,  # Reduced since we removed schema context
                 add_special_tokens=True
             )
             self.encoder_inputs.append(tokens)

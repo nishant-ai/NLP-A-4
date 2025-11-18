@@ -178,7 +178,7 @@ def eval_epoch(args, model, dev_loader, gt_sql_pth, model_sql_path, gt_record_pa
                 input_ids=encoder_input,
                 attention_mask=encoder_mask,
                 max_length=256,
-                num_beams=5,  # OPTIMIZED: Use beam search instead of greedy
+                num_beams=10,  # OPTIMIZED: Use beam search instead of greedy
                 num_return_sequences=1,
                 early_stopping=True,
                 pad_token_id=tokenizer.pad_token_id,
@@ -229,7 +229,7 @@ def test_inference(args, model, test_loader, model_sql_path, model_record_path):
                 input_ids=encoder_input,
                 attention_mask=encoder_mask,
                 max_length=256,
-                num_beams=5,  # OPTIMIZED: Beam search
+                num_beams=10,  # OPTIMIZED: Beam search
                 num_return_sequences=1,
                 early_stopping=True,
                 pad_token_id=tokenizer.pad_token_id,
