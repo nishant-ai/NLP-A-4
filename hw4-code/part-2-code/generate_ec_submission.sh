@@ -2,7 +2,11 @@
 
 # Generate submission files for Extra Credit question
 # This creates the test set predictions required for hw4.pdf Extra Credit
-# Usage: bash generate_ec_submission.sh
+# Usage: bash generate_ec_submission.sh [checkpoint_path]
+#
+# Examples:
+#   bash generate_ec_submission.sh checkpoints/scr_experiments/scr_experiment/best_model.pt
+#   bash generate_ec_submission.sh /scratch/$USER/NLP-A4/hw4-code/part-2-code/checkpoints/scr_experiments/scr_experiment/best_model.pt
 
 echo "=========================================="
 echo "Generating Extra Credit Submission Files"
@@ -13,14 +17,28 @@ echo "=========================================="
 export TOKENIZERS_PARALLELISM=false
 
 # Path to your saved checkpoint from scratch training
-CHECKPOINT_PATH="checkpoints/scr_experiments/scr_experiment/best_model.pt"
+# Can be provided as command line argument or use default
+if [ -n "$1" ]; then
+    CHECKPOINT_PATH="$1"
+else
+    # Default paths to try
+    CHECKPOINT_PATH="checkpoints/scr_experiments/scr_experiment/best_model.pt"
+fi
+
+echo "Looking for checkpoint at: $CHECKPOINT_PATH"
 
 # Check if checkpoint exists
 if [ ! -f "$CHECKPOINT_PATH" ]; then
     echo "ERROR: Checkpoint not found at $CHECKPOINT_PATH"
     echo ""
-    echo "Looking for checkpoints in common locations:"
-    find checkpoints -name "best_model.pt" 2>/dev/null || echo "No checkpoints found"
+    echo "Usage: bash generate_ec_submission.sh [checkpoint_path]"
+    echo ""
+    echo "Looking for checkpoints in current directory:"
+    find checkpoints -name "*.pt" 2>/dev/null || echo "No checkpoints found in ./checkpoints"
+    echo ""
+    echo "Try running on HPC:"
+    echo "  cd /scratch/\$USER/NLP-A4/hw4-code/part-2-code"
+    echo "  bash generate_ec_submission.sh checkpoints/scr_experiments/scr_experiment/best_model.pt"
     exit 1
 fi
 
