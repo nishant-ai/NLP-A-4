@@ -1,10 +1,12 @@
 #!/bin/bash
 #SBATCH --job-name=t5_ft_train
+#SBATCH --account=ds_ga_1011_001-2025fa
+#SBATCH --partition=c12m85-a100-1
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32GB
-#SBATCH --time=04:00:00
+#SBATCH --time=05:00:00
 #SBATCH --gres=gpu:1
 #SBATCH --output=logs/t5_ft_%j.out
 #SBATCH --error=logs/t5_ft_%j.err
