@@ -19,13 +19,13 @@ mkdir -p logs checkpoints results records
 
 # Run T5 training from scratch
 python train_t5.py \
-    --learning_rate 5e-4 \
+    --learning_rate 1e-4 \
     --batch_size 8 \
     --test_batch_size 16 \
-    --max_n_epochs 30 \
-    --patience_epochs 7 \
+    --max_n_epochs 50 \
+    --patience_epochs 10 \
     --scheduler_type cosine \
-    --num_warmup_epochs 3 \
+    --num_warmup_epochs 5 \
     --weight_decay 0.01 \
     --experiment_name scr_experiment
 
