@@ -48,13 +48,14 @@ if [ -d "$REPO_DIR" ]; then
     # Repository exists, pull latest changes
     cd $REPO_DIR
     git fetch --all
-    git reset --hard origin/inspired  # or origin/master, or your branch name
-    git pull
+    git checkout inspired
+    git reset --hard origin/inspired
+    git pull origin inspired
 else
     # Clone repository
     mkdir -p /scratch/$USER
     cd /scratch/$USER
-    git clone $REPO_URL NLP-A4
+    git clone -b inspired $REPO_URL NLP-A4
 fi
 
 # Change to working directory
