@@ -24,6 +24,21 @@ export TOKENIZERS_PARALLELISM=false
 # Change to working directory on scratch
 cd /scratch/$USER/NLP-A4/hw4-code/part-2-code
 
+# Git: Ensure we're on the 'inspired' branch with latest code
+echo "Checking git branch..."
+CURRENT_BRANCH=$(git branch --show-current)
+echo "Current branch: $CURRENT_BRANCH"
+
+if [ "$CURRENT_BRANCH" != "inspired" ]; then
+    echo "WARNING: Not on 'inspired' branch. Switching..."
+    git checkout inspired
+else
+    echo "✅ Already on 'inspired' branch"
+fi
+
+echo "Latest commit: $(git log -1 --oneline)"
+echo ""
+
 # Create necessary directories
 mkdir -p logs checkpoints results records
 
