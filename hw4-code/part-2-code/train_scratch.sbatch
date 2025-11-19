@@ -1,108 +1,113 @@
 #!/bin/bash
-
-#SBATCH --job-name=t5_scratch
+#SBATCH --job-name=t5_scr_train
 #SBATCH --account=ds_ga_1011_001-2025fa
 #SBATCH --partition=c12m85-a100-1
-#SBATCH --gres=gpu:1
-#SBATCH --time=05:00:00
-#SBATCH --mem=16G
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=4
-#SBATCH --output=logs/slurm_%j.out
-#SBATCH --error=logs/slurm_%j.err
+#SBATCH --mem=32GB
+#SBATCH --time=06:00:00
+#SBATCH --gres=gpu:1
+#SBATCH --output=logs/t5_scr_%j.out
+#SBATCH --error=logs/t5_scr_%j.err
 
-################################################################################
-# T5 Training from Scratch - SLURM Batch Job
-# Target: >=50% F1 Score (Extra Credit)
-################################################################################
-
+# Print job info
 echo "=========================================="
-echo "T5 Training from Scratch (SLURM)"
+echo "T5 Training from Scratch (Extra Credit)"
 echo "Job ID: $SLURM_JOB_ID"
 echo "Node: $SLURM_NODELIST"
 echo "Start Time: $(date)"
 echo "=========================================="
 
-# Create directories
-mkdir -p logs checkpoints results records
+# Create logs directory if it doesn't exist
+mkdir -p logs
+mkdir -p checkpoints
+mkdir -p results
+mkdir -p records
+
+# Load conda environment
+module purge
+module load anaconda3/2020.07
+
+# Activate your conda environment
+source ~/.bashrc
+conda activate hw4-part-2-nlp
 
 # Set environment variable to avoid tokenizer warnings
 export TOKENIZERS_PARALLELISM=false
 
-# Activate your conda environment
-# Modify this path based on your setup
-source ~/.bashrc
-conda activate hw4-part-2-nlp
-
-# Navigate to project directory (modify as needed)
-cd $HOME/hw4-code/part-2-code
-
-################################################################################
-# Step 1: Data Augmentation
-################################################################################
-
-echo ""
+# Clone or update code from GitHub
 echo "=========================================="
-echo "Step 1: Running Data Augmentation"
+echo "Pulling latest code from GitHub..."
 echo "=========================================="
 
-python augment_data.py
+REPO_DIR=/scratch/$USER/NLP-A4
+REPO_URL="https://github.com/nishant-ai/NLP-A-4"
 
-# Check if augmentation was successful
-if [ ! -f "data/train_augmented.nl" ] || [ ! -f "data/train_augmented.sql" ]; then
-    echo "ERROR: Data augmentation failed! Files not found."
-    exit 1
+if [ -d "$REPO_DIR" ]; then
+    # Repository exists, pull latest changes
+    cd $REPO_DIR
+    git fetch --all
+    git checkout inspired
+    git reset --hard origin/inspired
+    git pull origin inspired
+else
+    # Clone repository
+    mkdir -p /scratch/$USER
+    cd /scratch/$USER
+    git clone -b inspired $REPO_URL NLP-A4
 fi
 
-echo "Data augmentation complete!"
+# Change to working directory
+cd /scratch/$USER/NLP-A4/hw4-code/part-2-code
 
-################################################################################
-# Step 2: Training from Scratch
-################################################################################
+# Show current git commit for verification
+echo "Current Git Commit: $(git rev-parse --short HEAD)"
+echo "Branch: $(git branch --show-current)"
 
-echo ""
+# Run T5 training from scratch
 echo "=========================================="
-echo "Step 2: Training T5 from Scratch"
+echo "Starting T5 Training from Scratch"
 echo "=========================================="
 
-# Strategy 1: Higher LR with Linear scheduler
-echo "Running Strategy 1: Linear scheduler"
 python train_t5.py \
     --learning_rate 5e-4 \
-    --max_n_epochs 50 \
-    --patience_epochs 10 \
     --batch_size 8 \
     --test_batch_size 16 \
-    --scheduler_type linear \
-    --num_warmup_epochs 5 \
+    --max_n_epochs 30 \
+    --patience_epochs 7 \
+    --scheduler_type cosine \
+    --num_warmup_epochs 3 \
     --weight_decay 0.01 \
-    --experiment_name scratch_ec
-
-################################################################################
-# Step 3: Rename output files for submission
-################################################################################
-
-echo ""
-echo "=========================================="
-echo "Step 3: Preparing submission files"
-echo "=========================================="
-
-# Rename files to match required submission format
-if [ -f "results/t5_scr_ft_experiment_test.sql" ]; then
-    cp results/t5_scr_ft_experiment_test.sql results/t5_ft_experiment_ec_test.sql
-    echo "Created: results/t5_ft_experiment_ec_test.sql"
-fi
-
-if [ -f "records/t5_scr_ft_experiment_test.pkl" ]; then
-    cp records/t5_scr_ft_experiment_test.pkl records/t5_ft_experiment_ec_test.pkl
-    echo "Created: records/t5_ft_experiment_ec_test.pkl"
-fi
+    --experiment_name t5_scr_experiment
 
 echo "=========================================="
-echo "Training Complete!"
+echo "Training Complete"
 echo "End Time: $(date)"
 echo "=========================================="
 
+# Copy results to home directory for easy access
+echo "=========================================="
+echo "Copying results to home directory..."
+echo "=========================================="
+
+RESULTS_DIR=~/hw4_scratch_results_$(date +%Y%m%d_%H%M%S)
+mkdir -p $RESULTS_DIR
+
+# Copy output files
+cp -r results/t5_scr_*.sql $RESULTS_DIR/ 2>/dev/null || echo "No SQL files found"
+cp -r records/t5_scr_*.pkl $RESULTS_DIR/ 2>/dev/null || echo "No PKL files found"
+cp -r checkpoints/scr_experiments/t5_scr_experiment/*.pt $RESULTS_DIR/ 2>/dev/null || echo "No checkpoint files found"
+
+# Also create the required submission filenames
+cp results/t5_scr_scr_experiment_test.sql $RESULTS_DIR/t5_ft_experiment_ec_test.sql 2>/dev/null
+cp records/t5_scr_scr_experiment_test.pkl $RESULTS_DIR/t5_ft_experiment_ec_test.pkl 2>/dev/null
+
+echo "Results copied to: $RESULTS_DIR"
 echo ""
-echo "Submission files for Extra Credit:"
-echo "  - results/t5_ft_experiment_ec_test.sql"
-echo "  - records/t5_ft_experiment_ec_test.pkl"
+echo "Files for Gradescope Extra Credit submission:"
+ls -la $RESULTS_DIR/*test* 2>/dev/null || echo "No test files found"
+echo ""
+echo "=========================================="
+echo "Job Complete!"
+echo "=========================================="
