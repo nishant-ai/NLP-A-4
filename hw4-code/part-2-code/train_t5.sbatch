@@ -36,8 +36,33 @@ conda activate hw4-part-2-nlp
 # Set environment variable to avoid tokenizer warnings
 export TOKENIZERS_PARALLELISM=false
 
+# Clone or update code from GitHub
+echo "=========================================="
+echo "Pulling latest code from GitHub..."
+echo "=========================================="
+
+REPO_DIR=/scratch/$USER/NLP-A4
+REPO_URL="https://github.com/nishant-ai/NLP-A-4"  # <-- UPDATE THIS with your repo URL
+
+if [ -d "$REPO_DIR" ]; then
+    # Repository exists, pull latest changes
+    cd $REPO_DIR
+    git fetch --all
+    git reset --hard origin/inspired  # or origin/master, or your branch name
+    git pull
+else
+    # Clone repository
+    mkdir -p /scratch/$USER
+    cd /scratch/$USER
+    git clone $REPO_URL NLP-A4
+fi
+
 # Change to working directory
 cd /scratch/$USER/NLP-A4/hw4-code/part-2-code
+
+# Show current git commit for verification
+echo "Current Git Commit: $(git rev-parse --short HEAD)"
+echo "Branch: $(git branch --show-current)"
 
 # Run T5 fine-tuning
 echo "=========================================="
