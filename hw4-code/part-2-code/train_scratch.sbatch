@@ -36,7 +36,7 @@ python train_t5.py \
     --learning_rate 1e-4 \
     --batch_size 8 \
     --test_batch_size 16 \
-    --max_n_epochs 50 \
+    --max_n_epochs 30 \
     --patience_epochs 10 \
     --scheduler_type cosine \
     --num_warmup_epochs 5 \
