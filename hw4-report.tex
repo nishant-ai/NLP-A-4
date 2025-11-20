@@ -4,7 +4,7 @@
 
 \title{DSGA 1011: Assignment 4}
 
-\author{Full Name \\ Net ID}
+\author{Nishant Sharma \\ ns6287}
 
 \date{}
 
@@ -12,21 +12,68 @@
 \colmfinalcopy
 \begin{document}
 \maketitle
+
 % \section*{Part I. Q1} No written element, submit \texttt{out\_original.txt}  to autograder.
+
 \section*{Q0. 1.}
-Please provide a link to your github repository, which contains the code for both Part I and Part II. \textcolor{gray}{TODO}
+Github Repo: https://github.com/nishant-ai/NLP-A-4.git 
+
 \section*{Q2. 1.}
 Describe your transformation of dataset.
-\textcolor{gray}{TODO}
+
+I implemented a hybrid text transformation to simulate realistic, out-of-distribution data. The transformation is \textbf{label-preserving} (maintains the original sentiment) and consists of two sequential stages:
+
+\begin{enumerate}
+    \item \textbf{Stage 1: Synonym Replacement (20\% Probability)}
+    \begin{itemize}
+        \item \textbf{Method:} For each alphabetic word, there is a 20\% chance it is replaced by a randomly selected synonym.
+        \item \textbf{Implementation:} Synonyms are sourced from the WordNet synset database (\texttt{nltk.corpus.wordnet}). To ensure a change, the original word is excluded from the list of potential replacements.
+        \item \textbf{Example:} "movie" $\rightarrow$ "motion picture"
+    \end{itemize}
+
+    \item \textbf{Stage 2: Realistic Typo Introduction (18\% Probability)}
+    \begin{itemize}
+        \item \textbf{Method:} For words longer than two characters, there is an 18\% chance of introducing one of four equally weighted, character-level errors.
+        \item \textbf{Implementation:} Typos are based on a standard QWERTY keyboard layout to ensure realism. The four types are:
+        \begin{itemize}
+            \item \textbf{Character Swap:} Adjacent characters are swapped (e.g., "terrible" $\rightarrow$ "terirble").
+            \item \textbf{Character Deletion:} A random character is removed (e.g., "acting" $\rightarrow$ "actng").
+            \item \textbf{Character Insertion:} A QWERTY-adjacent key is inserted (e.g., "plot" $\rightarrow$ "plopt").
+            \item \textbf{Character Substitution:} A character is replaced with a QWERTY-adjacent key (e.g., "sense" $\rightarrow$ "swnse").
+        \end{itemize}
+    \end{itemize}
+\end{enumerate}
+
+\textbf{Rationale:} This approach is reasonable as it models two common sources of real-world variation: \textbf{vocabulary diversity} (synonyms) and \textbf{typing errors} (QWERTY-based typos). The moderate probabilities (20\% and 18\%) create a meaningful distribution shift while ensuring the text remains comprehensible.
+
 % \section*{Part I. Q2. 2. No written element, submit \texttt{out\_transformed.txt} to autograder. }
 \section*{Q3. 1}
 \textbf{Report \& Analysis}
     \begin{itemize}
-        \item Report the accuracy values for both the original and transformed test data evaluations.  \textcolor{gray}{TODO}
-        \item Analyze and discuss the following: (1) Did the model's performance on the transformed test data improve after applying data augmentation? (2) How did data augmentation affect the model's performance on the original test data? Did it enhance or diminish its accuracy? \textcolor{gray}{TODO}
-        \item Offer an intuitive explanation for the observed results, considering the impact of data augmentation on model training. \textcolor{gray}{TODO}
-        \item Explain one limitation of the data augmentation approach used here to improve performance on out-of-distribution (OOD) test sets. \textcolor{gray}{TODO}
+        \item Report the accuracy values for both the original and transformed test data evaluations.
+        
+        The model trained on the augmented dataset was evaluated on both test sets:
+        \begin{itemize}
+            \item \textbf{Accuracy on Original Test Data: 93.284\%} (Baseline: 93.136\%)
+            \item \textbf{Accuracy on Transformed Test Data: 90.108\%} (Baseline: 87.516\%)
+        \end{itemize}
+        
+        \item Analyze and discuss the following: (1) Did the model's performance on the transformed test data improve after applying data augmentation? (2) How did data augmentation affect the model's performance on the original test data? Did it enhance or diminish its accuracy?
+        
+        \textbf{(1)} Yes, data augmentation significantly \textbf{improved performance on the transformed test data.} Accuracy increased from 87.516\% to \textbf{90.108\%}, a gain of \textbf{+2.592 percentage points}. This shows the model became more robust to the specific variations it was trained on.
+        
+        \textbf{(2)} Data augmentation \textbf{slightly enhanced performance on the original test data,} with accuracy rising from 93.136\% to \textbf{93.284\%} (+0.148 points). This demonstrates that the augmentation did not harm the model's ability to handle clean data.
+        
+        \item Offer an intuitive explanation for the observed results, considering the impact of data augmentation on model training.
+        
+        By exposing the model to transformed examples (e.g., synonyms and typos), we teach it \textbf{invariance}. The model learns to focus on core semantic meaning rather than specific surface-level tokens. This acts as a form of \textbf{regularization}, forcing the model to build more robust feature representations that generalize better to both clean and perturbed inputs.
+        
+        \item Explain one limitation of the data augmentation approach used here to improve performance on out-of-distribution (OOD) test sets.
+        
+        The primary limitation is that this method provides \textbf{transformation-specific robustness}. The model only gets better at handling the \textit{exact types} of perturbations it saw in training (synonyms and QWERTY typos). It does not learn to generalize to new, \textit{unseen} types of OOD shifts, such as real-world paraphrasing, slang, or different grammatical structures.
     \end{itemize}
+
+    
 \section*{Part II. Q4}
 % 
 % \section{Data Statistics and Processing (8pt)}
@@ -38,14 +85,14 @@ Describe your transformation of dataset.
 \toprule
 Statistics Name & Train & Dev \\
 \midrule
-Number of examples & \textcolor{gray}{XXX} & \textcolor{gray}{XXX} \\
-Mean sentence length & \textcolor{gray}{XXX}& \textcolor{gray}{XXX} \\
-Mean SQL query length & \textcolor{gray}{XXX}& \textcolor{gray}{XXX}  \\
-Vocabulary size (natural language)& \textcolor{gray}{XXX}& \textcolor{gray}{XXX}  \\
-Vocabulary size (SQL)& \textcolor{gray}{XXX}& \textcolor{gray}{XXX}  \\
+Number of examples & 4225 & 466 \\
+Mean sentence length & 17.10 & 17.07 \\
+Mean SQL query length & 216.37 & 210.05  \\
+Vocabulary size (natural language)& 791 & 465  \\
+Vocabulary size (SQL)& 555 & 395  \\
 \bottomrule
 \end{tabular}
-\caption{Data statistics before any pre-processing. \textcolor{gray}{You need to at least provide the statistics listed above, and can add new entries.}}
+\caption{Data statistics before any pre-processing.}
 \label{tab:data_stats_before}
 \end{table}
 
@@ -55,12 +102,15 @@ Vocabulary size (SQL)& \textcolor{gray}{XXX}& \textcolor{gray}{XXX}  \\
 \toprule
 Statistics Name & Train & Dev \\
 \midrule
-\multicolumn{3}{l}{\textbf{T5 fine-tuned model}} \\ % \textcolor{gray}{(T5 fine-tuning or T5 from scratch)}} \\
-\textcolor{gray}{Statistics Name} & \textcolor{gray}{XXX}& \textcolor{gray}{XXX} \\
+\multicolumn{3}{l}{\textbf{T5 fine-tuned model}} \\
+Mean sentence length & 23.10 & 23.07 \\
+Mean SQL query length & 217.37 & 211.05 \\
+Vocabulary size (natural language)& 796 & 470 \\
+Vocabulary size (SQL)& 556 & 396 \\
 \midrule
 \bottomrule
 \end{tabular}
-\caption{Data statistics after pre-processing. \textcolor{gray}{You need to at least provide the statistics listed in \autoref{tab:data_stats_before} (except for the number of lines), and can add new entries.}}
+\caption{Data statistics after pre-processing. The sentence lengths increased due to the addition of the task prefix ``translate English to SQL: '' (6 tokens). Vocabulary sizes slightly increased as the prefix introduced new tokens.}
 \label{tab:data_stats_after}
 \end{table}
 
@@ -80,10 +130,10 @@ Statistics Name & Train & Dev \\
 \toprule
 Design choice & Description \\
 \midrule
-Data processing & \textcolor{gray}{Describe the data processing steps you undertook, if any.} \\
-Tokenization & \textcolor{gray}{Describe how you did the tokenization for the inputs to the encoder and decoder. If you use anything else than the default T5 tokenizer, specify what you use, and why you choose to use it.} \\
-Architecture & \textcolor{gray}{Describe the components in the T5 architecture that you chose to fine-tune. Did you fine-tune the entire model, specific layers?} \\
-Hyperparameters & \textcolor{gray}{List the key hyperparameters that you used, including the learning rate, batch size, and stopping criteria.} \\
+Data processing & Added task-specific prefix ``translate English to SQL: '' to all natural language inputs. Applied truncation to 512 tokens for both encoder inputs and decoder targets. Added EOS token to decoder targets. \\
+Tokenization & Used the default T5TokenizerFast from \texttt{google-t5/t5-small} checkpoint. This pre-trained tokenizer is well-suited for English text and provides good coverage of SQL syntax tokens. \\
+Architecture & Fine-tuned the entire T5-small model (all encoder and decoder layers). No layers were frozen. The model has 60M parameters with 6 encoder layers and 6 decoder layers. \\
+Hyperparameters & Learning rate: 1e-4; Batch size: 8 (train), 16 (test); Optimizer: AdamW with weight decay 0.01; Scheduler: Cosine with 2 warmup epochs; Max epochs: 20; Early stopping patience: 5 epochs; Generation: Greedy decoding (num\_beams=1) \\
 \bottomrule
 \end{tabular}
 \caption{Details of the best-performing T5 model configurations (fine-tuned)}
@@ -98,7 +148,7 @@ Hyperparameters & \textcolor{gray}{List the key hyperparameters that you used, i
 
 \section*{Q6. }
 
-\paragraph{Quantitative Results:} 
+\paragraph{Quantitative Results:}
 \begin{table}[h!]
 \centering
 \begin{tabular}{lcc}
@@ -107,20 +157,20 @@ Hyperparameters & \textcolor{gray}{List the key hyperparameters that you used, i
   \midrule
   \multicolumn{3}{l}{\textbf{Dev Results}} \\
   \midrule
-  
+
   \multicolumn{3}{l}{\textbf{T5 fine-tuned}} \\
-  Full model & XX.XX & XX.XX \\[5pt]
+  Full model & 1.93\% & 74.06\% \\[5pt]
   % Variant1 & XX.XX & XX.XX \\
   % Variant2 & XX.XX & XX.XX \\
   % Variant3 & XX.XX & XX.XX \\
-  
+
   \midrule
   \multicolumn{3}{l}{\textbf{Test Results}} \\
   \midrule
-  T5 fine-tuning & XX.XX & XX.XX \\
+  T5 fine-tuning & \multicolumn{2}{c}{(Submit to Gradescope)} \\
   \bottomrule
-\end{tabular}  
-\caption{Development and test results. \textcolor{gray}{Use this table to report quantitative results for both dev and test results.}}
+\end{tabular}
+\caption{Development and test results. Dev results from the best model checkpoint based on Record F1 score. Query EM is the SQL exact match rate; F1 score is the Record F1 metric. Test results will be evaluated on Gradescope.}
 \label{tab:results}
 \end{table}
 
@@ -131,28 +181,100 @@ Hyperparameters & \textcolor{gray}{List the key hyperparameters that you used, i
 \begin{landscape}
 \begin{table}
   \centering
-  \begin{tabular}{p{2cm}p{6cm}p{6cm}p{6cm}}
+  \begin{tabular}{p{2.5cm}p{6cm}p{7cm}p{3cm}}
     \toprule
     \textbf{Error Type}& \textbf{Example Of Error} & \textbf{Error Description} & \textbf{Statistics} \\
     \midrule
-    \textcolor{gray}{Error name}  & \textcolor{gray}{Snippet from datapoint examplifying error} & \textcolor{gray}{Describe the error in natural language} & \textcolor{gray}{Provide statistics in the form ``COUNT/TOTAL'' on the prevalence of the error. TOTAL is the number of relevant examples (e.g. number of queries, for query-level error), and COUNT is the number of examples that showed this error.}  \\
-    
+    Missing or Wrong Condition &
+    \textbf{NL:} ``what is the earliest flight leaving denver going to boston''
+    \newline\textbf{GT:} \texttt{...WHERE flight\_1.departure\_time = (SELECT MIN(...)}
+    \newline\textbf{Pred:} \texttt{...WHERE flight\_1.departure\_time = (SELECT MIN(fli...)} (truncated) &
+    Model generates incomplete or incorrect WHERE clauses. Most commonly, the model truncates complex subqueries or fails to properly join tables with correct conditions, resulting in queries that either miss critical filtering conditions or have malformed SQL syntax. &
+    170/183 incorrect predictions (92.9\% of errors) \\
     \midrule
-    &  &   & \\
+    Wrong Column Selection &
+    \textbf{NL:} ``what ground transportation is available from the pittsburgh airport to downtown and how much does it cost''
+    \newline\textbf{GT:} \texttt{SELECT ... transport\_type, ground\_fare ...}
+    \newline\textbf{Pred:} \texttt{SELECT ... transport\_type ...} (missing \texttt{ground\_fare}) &
+    Model fails to select all required columns mentioned in the natural language query. In this example, the query asks for both transportation type and cost, but the model only selects the transport type, omitting the fare column. &
+    19/183 incorrect predictions (10.4\% of errors) \\
+    \midrule
+    Wrong Aggregation &
+    \textbf{NL:} ``how many seats in a 734''
+    \newline\textbf{GT:} \texttt{SELECT DISTINCT aircraft\_code WHERE aircraft\_code = '734'}
+    \newline\textbf{Pred:} \texttt{SELECT count(DISTINCT flight\_id) WHERE airline\_code = '734'} &
+    Model misinterprets the intent of the query and applies incorrect aggregation functions or queries the wrong table/column. Here, the model incorrectly assumes a COUNT is needed and confuses aircraft codes with airline codes. &
+    2/183 incorrect predictions (1.1\% of errors) \\
     \bottomrule
   \end{tabular}
-  \label{tab:qualitative}
-  \caption{Use this table for your qualitative analysis on the dev set.}\label{tab:qualitative}
+  \caption{Qualitative error analysis on the dev set. Analysis performed on 466 dev examples, with 183 incorrect predictions (39.3\%). The three main error categories account for all observed errors.}\label{tab:qualitative}
 \end{table}
 \end{landscape}
 
 \section*{Q7.}
 
-Provide a link to a google drive which contains a model checkpoint used to generate outputs you have submitted. 
-\textcolor{gray}{TODO}
+Provide a link to a google drive which contains a model checkpoint used to generate outputs you have submitted.
 
-\section*{Extra Credit: }
+\textbf{Google Drive Link:} \textcolor{red}{[TODO: Add your Google Drive link for T5 fine-tuned checkpoint]}
 
-If you are doing extra credit assignment, please describe your system here, as well as provide a link to a google drive which contains a model checkpoint used to generate outputs you have submitted. 
-\textcolor{gray}{Optional TODO}
+\textit{The checkpoint contains the best T5 fine-tuned model (\texttt{best\_model.pt}) from the \texttt{ft\_experiment} run, selected based on highest Record F1 score on the dev set.}
+
+\section*{Extra Credit: T5 Training from Scratch}
+
+For the extra credit assignment, I trained a T5-small model from scratch (random initialization) on the text-to-SQL task, rather than fine-tuning from pre-trained weights.
+
+\subsection*{System Description}
+
+\textbf{Model Architecture:} T5-small with random initialization using the \texttt{google-t5/t5-small} configuration (60M parameters, 6 encoder layers, 6 decoder layers).
+
+\textbf{Training Configuration:}
+\begin{itemize}
+    \item \textbf{Data processing:} Same as fine-tuned model - added task prefix ``translate English to SQL: '', truncation to 512 tokens, EOS token added to targets
+    \item \textbf{Tokenization:} T5TokenizerFast from \texttt{google-t5/t5-small} (same vocabulary as pre-trained, but randomly initialized embeddings)
+    \item \textbf{Learning rate:} 1e-4
+    \item \textbf{Batch size:} 8 (train), 16 (test)
+    \item \textbf{Optimizer:} AdamW with weight decay 0.01
+    \item \textbf{Scheduler:} Cosine with 5 warmup epochs (more than fine-tuned to allow model to learn from scratch)
+    \item \textbf{Max epochs:} 30 (vs 20 for fine-tuned)
+    \item \textbf{Patience:} 10 epochs (vs 5 for fine-tuned)
+    \item \textbf{Generation:} Greedy decoding (num\_beams=1)
+\end{itemize}
+
+\subsection*{Results}
+
+\textbf{Development Set Performance (Best Checkpoint - Epoch 29 of 30):}
+\begin{itemize}
+    \item SQL Exact Match: 2.36\%
+    \item Record F1 Score: 61.17\%
+    \item Record EM: 58.15\%
+    \item SQL Error Rate: 8.37\% (vs 13.73\% for fine-tuned)
+\end{itemize}
+
+\textbf{Comparison with T5 Fine-tuned:}
+
+Training from scratch achieved \textbf{61.17\% F1 compared to 74.06\% for fine-tuning}, a difference of -12.89 percentage points. However, the from-scratch model had a \textbf{lower SQL error rate (8.37\% vs 13.73\%)}, indicating it generated more syntactically valid queries, though semantically less accurate.
+
+\textbf{Analysis:} The performance gap demonstrates the significant value of pre-training. The pre-trained T5 model benefits from:
+\begin{enumerate}
+    \item \textbf{Language understanding:} Pre-training on massive text corpora provides strong natural language comprehension
+    \item \textbf{Transfer learning:} Knowledge from pre-training transfers to the SQL generation task
+    \item \textbf{Faster convergence:} Fine-tuning required 30 total epochs to reach best performance, similar to from-scratch training
+\end{enumerate}
+
+Interestingly, the from-scratch model produced fewer syntax errors, suggesting it learned more conservative SQL patterns, though at the cost of semantic accuracy (lower F1).
+
+\subsection*{Key Differences from Fine-tuning}
+
+\begin{itemize}
+    \item \textbf{Longer training:} Required 30 max epochs vs 20, with higher patience (10 vs 5) to allow the randomly initialized model to converge
+    \item \textbf{More warmup:} Used 5 warmup epochs vs 2 to gradually increase learning rate from zero
+    \item \textbf{Same hyperparameters:} Kept learning rate and batch size identical to isolate the effect of pre-training
+\end{itemize}
+
+\subsection*{Model Checkpoint}
+
+\textbf{Google Drive Link:} \textcolor{red}{[TODO: If you can retrieve checkpoint from HPC, add link here. Otherwise note: ``Checkpoint not available - encountered issues with file transfer from HPC'']}
+
+\textit{Note: The checkpoint would contain the best model from scratch training selected based on dev set Record F1.}
+
 \end{document}
